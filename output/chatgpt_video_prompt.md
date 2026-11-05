@@ -70,14 +70,14 @@ SCENE 11 (46 to 50 s)
 Voice: "They depend more on government, and government gains more control."
 Visual: family icon shrinks, chain links appear, government building grows.
 
-SCENE 12 (50 to 53 s)
+SCENE 12 (50 to 55 s)
 Voice: "And the loop starts again."
 Visual: the full six-step loop animates once around:
 1 Rules, 2 Choices, 3 Costs, 4 Less able, 5 Depend, 6 Weaker, then back to 1.
 
-SCENE 13 (53 to 60 s)
-Voice: "Better design, like phasing out assistance slowly as income rises, can help families move forward."
-Visual: a teal arrow breaks out of the loop. Label: "Gradual phase-outs".
+SCENE 13 (55 to 60 s)
+Voice: "That is the hypothesis. Now it needs data to test it."
+Visual: the loop stays on screen and keeps turning slowly.
 Small footer: "Sources: USDA FNS SNAP FY2026 allotments; USDA Cost of Raising a Child;
 Roll, Miller and Despard, WashU CSD 2025."
 ```
@@ -101,6 +101,6 @@ Roll, Miller and Despard, WashU CSD 2025."
 > They depend more on government, and government gains more control.
 > And the loop starts again.
 >
-> Better design, like phasing out assistance slowly as income rises, can help families move forward.
+> That is the hypothesis. Now it needs data to test it.
 
-About 150 words, which is about 60 seconds at a calm pace.
+About 145 words, which is about 60 seconds at a calm pace.

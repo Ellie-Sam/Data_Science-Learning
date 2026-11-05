@@ -79,20 +79,20 @@ function loopSVG(lt, opts) {
 }
 
 const scenes = [
-  { d: 7, cap: 'Many benefits are based on two things: household size and income.', draw(lt) {
+  { d: 8, cap: 'Many benefits are based on two things: household size and income.', draw(lt) {
       const a = P(lt, 0.3, 0.9), b = P(lt, 0.8, 1.4), pl = P(lt, 1.2, 1.7);
       return G(icon('family', C.teal, 90, 220, 330) + txt(290, 640, 'Household size', 44, C.text), -60 * (1 - a), 0, 1, a) +
         G(txt(540, 470, '+', 110, C.gray, 600), 0, 0, 1, pl) +
         G(icon('paycheck', C.gray, 640, 230, 330) + txt(805, 640, 'Income', 44, C.text), 60 * (1 - b), 0, 1, b);
   } },
-  { d: 6.5, cap: 'Some families believe a bigger household keeps them eligible.', draw(lt) {
+  { d: 7.5, cap: 'Some families believe a bigger household keeps them eligible.', draw(lt) {
       const grow = P(lt, 1.2, 2.4), plus = P(lt, 1.0, 1.6);
       const n = lt < 1.8 ? 3 : 4;
       return G(icon('family', C.teal, 0, 0, 380, grow, C.teal), 540 - 236 * (1 + grow * 0.0) + (1 - grow) * 40, 180) +
         G(`<circle cx="840" cy="190" r="56" fill="${C.teal}"/>` + txt(840, 210, '+1', 52, '#fff', 800), 0, 0, 0.6 + 0.4 * plus, plus, 840, 190) +
         txt(540, 720, `Household: ${n} people`, 48, C.text);
   } },
-  { d: 7.5, cap: 'Others lower their income or hide earnings to stay under the limit.', draw(lt) {
+  { d: 9, cap: 'Others lower their income or hide earnings to stay under the limit.', draw(lt) {
       const shrink = P(lt, 1.0, 2.6), card = P(lt, 2.4, 3.0), stamp = P(lt, 3.6, 4.1);
       const maxH = 600, base = 760, lim = 470;
       const h = 560 - shrink * 160;
@@ -111,7 +111,7 @@ const scenes = [
       s += G(r, 40 * (1 - card), 0, 1, card);
       return s;
   } },
-  { d: 9, cap: 'But a child costs far more than the benefit adds: about $860 a month vs about $200.', draw(lt) {
+  { d: 10, cap: 'But a child costs far more than the benefit adds: about $860 a month vs about $200.', draw(lt) {
       const g = P(lt, 0.8, 2.8), base = 760, maxH = 600;
       const h1 = maxH * 200 / 860 * g, h2 = maxH * g;
       const v1 = Math.round(200 * g / 10) * 10, v2 = Math.round(860 * g / 10) * 10;
@@ -123,7 +123,7 @@ const scenes = [
         txt(760, base + 56, 'Cost of a child', 36, C.text) + txt(760, base + 100, 'per month', 32, C.sub, 500) +
         txt(540, base + 160, 'SNAP FY2026 maximum, at zero income. USDA cost estimate, 2015 dollars.', 24, C.sub, 500);
   } },
-  { d: 6.5, cap: 'With the same income and higher costs, families fall further behind.', draw(lt) {
+  { d: 7.5, cap: 'With the same income and higher costs, families fall further behind.', draw(lt) {
       const empty = P(lt, 1.0, 4.0), c = P(lt, 0.8, 3.5);
       return icon('wallet', C.gray, 360, 40, 360, 1 - empty) +
         txt(170, 560, 'Income', 36, C.text, 700, 'start') +
@@ -131,7 +131,7 @@ const scenes = [
         txt(170, 680, 'Costs', 36, C.text, 700, 'start') +
         `<rect x="420" y="646" width="${300 + 200 * c}" height="44" rx="10" fill="${C.coral}"/>` + txt(740 + 200 * c, 680, 'up', 34, C.coral, 700, 'start');
   } },
-  { d: 7.5, cap: 'They depend more on government, and government gains more control.', draw(lt) {
+  { d: 8.5, cap: 'They depend more on government, and government gains more control.', draw(lt) {
       const k = P(lt, 1.0, 4.0), ch = P(lt, 0.6, 1.4);
       const fs = 1 - 0.45 * k, bs = 0.7 + 0.55 * k;
       return G(icon('family', C.teal, 60, 330, 300), 0, 0, fs, 1, 230, 630) +
@@ -139,21 +139,8 @@ const scenes = [
         G(icon('building', C.gray, 640, 250, 380), 0, 0, bs, 1, 830, 630) +
         txt(230, 720, 'Family', 40, C.teal) + txt(830, 720, 'Government', 40, C.text);
   } },
-  { d: 7, cap: 'And the loop starts again.', draw(lt) {
-      return loopSVG(lt, { draw: P(lt, 0.2, 1.6), travel: clamp((lt - 1.8) / 4.0) });
-  } },
-  { d: 9, cap: 'Better design, like gradual benefit phase-outs, can help families move forward.', draw(lt) {
-      const out = P(lt, 1.0, 3.2), lab = P(lt, 2.8, 3.5);
-      const cx = 540, cy = 470;
-      let s = G(loopSVG(lt, { dim: 0.6 }), -150, 40, 0.74, 1, 540, 470);
-      // breakout arrow from the loop rim to upper right
-      const len = 640;
-      s += `<path id="brk" d="M560 280 C 680 250, 820 230, 920 140" fill="none" stroke="${C.teal}" stroke-width="16" stroke-linecap="round"
-             stroke-dasharray="${len} ${len}" stroke-dashoffset="${len * (1 - out)}"/>`;
-      if (out > 0.97) s += `<path d="M965 100 L948 188 L892 128 Z" fill="${C.teal}"/>`;
-      s += G(txt(850, 470, 'Gradual', 50, C.teal, 800) + txt(850, 532, 'phase-outs', 50, C.teal, 800), 0, 20 * (1 - lab), 1, lab);
-      s += G(icon('family', C.teal, 900, 0, 120), 0, 0, 1, lab);
-      return s;
+  { d: 9.5, cap: 'And the loop starts again.', draw(lt) {
+      return loopSVG(lt, { draw: P(lt, 0.2, 1.6), travel: clamp((lt - 1.8) / 5.5) });
   } },
 ];
 let acc = 0; scenes.forEach(s => { s.start = acc; acc += s.d; });
