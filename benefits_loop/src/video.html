@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Benefits Loop video</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body { background: #F7F5F0; color: #2E3338; font-family: 'Inter', sans-serif; position: relative; }
+  #header { position: absolute; left: 70px; top: 96px; width: 940px; }
+  #header .t { font-size: 66px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  #header .s { font-size: 34px; color: #5B636B; margin-top: 14px; line-height: 1.3; }
+  #dots { position: absolute; left: 70px; top: 330px; display: flex; gap: 12px; }
+  #dots span { width: 44px; height: 8px; border-radius: 4px; background: #E4E2DC; }
+  #stage { position: absolute; left: 0; top: 380px; }
+  #caption { position: absolute; left: 60px; top: 1330px; width: 960px; height: 440px; background: #fff;
+             border: 2px solid #E4E2DC; border-radius: 28px; display: flex; align-items: center; justify-content: center;
+             padding: 36px 52px; }
+  #caption p { font-size: 58px; line-height: 1.3; font-weight: 600; text-align: center; text-wrap: balance; }
+  #sources { position: absolute; left: 70px; top: 1806px; width: 940px; font-size: 26px; line-height: 1.35; color: #5B636B; text-align: center; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+<div id="header"><div class="t">The Benefits Loop</div><div class="s">How eligibility rules can keep families dependent</div><div class="s" style="color:#1F8A8A; font-weight:700; font-size:30px; margin-top:8px;">A hypothesis worth data analysis</div></div>
+<div id="dots"></div>
+<svg id="stage" width="1080" height="940" viewBox="0 0 1080 940"></svg>
+<div id="caption"><p id="cap"></p></div>
+<div id="sources"></div>
+<script>
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const ease = x => { x = clamp(x); return x * x * (3 - 2 * x); };
+const P = (lt, a, b) => ease((lt - a) / (b - a));
+const T = (s, attrs = '') => s; // passthrough
+const txt = (x, y, s, size, color, weight = 700, anchor = 'middle', op = 1) =>
+  `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Inter" font-size="${size}" font-weight="${weight}" fill="${color}" opacity="${op}">${s}</text>`;
+const G = (inner, tx = 0, ty = 0, sc = 1, op = 1, cx = 0, cy = 0) =>
+  `<g opacity="${op}" transform="translate(${tx},${ty}) translate(${cx},${cy}) scale(${sc}) translate(${-cx},${-cy})">${inner}</g>`;
+
+// Loop geometry shared by scenes 7 and 9
+function loopSVG(lt, opts) {
+  const cx = 540, cy = 470, R = 300, nr = 64;
+  const angs = [-90, -30, 30, 90, 150, 210].map(a => a * Math.PI / 180);
+  const cols = [C.gray, C.teal, C.coral, C.teal, C.coral, C.coral];
+  const ics = ['dollar', 'family', 'dollar', 'house', 'building', 'chain'];
+  const words = ['Rules', 'Choices', 'Costs', 'Less able', 'Depend', 'Weaker'];
+  const travel = opts.travel; // 0..1 around the loop
+  const dim = opts.dim || 0;
+  let s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="${C.gray}"/></marker></defs>`;
+  const gap = (nr + 16) / R;
+  for (let i = 0; i < 6; i++) {
+    const a0 = angs[i] + gap, a1 = angs[i] + Math.PI / 3 - gap;
+    const len = R * (a1 - a0);
+    const drawn = opts.draw === undefined ? 1 : clamp(opts.draw * 6 - i);
+    const x0 = cx + R * Math.cos(a0), y0 = cy + R * Math.sin(a0), x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+    s += `<path d="M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}" fill="none" stroke="${i === 5 ? C.coral : C.gray}" stroke-width="9" stroke-linecap="round"
+           stroke-dasharray="${len} ${len}" stroke-dashoffset="${len * (1 - drawn)}" ${drawn > 0.98 ? 'marker-end="url(#ah)"' : ''} opacity="${1 - dim * 0.6}"/>`;
+  }
+  for (let i = 0; i < 6; i++) {
+    const x = cx + R * Math.cos(angs[i]), y = cy + R * Math.sin(angs[i]);
+    const appear = opts.draw === undefined ? 1 : clamp(opts.draw * 6 - i + 0.5);
+    let hl = 0;
+    if (travel !== undefined) { const d = Math.abs(((travel * 6 - i) % 6 + 6) % 6); hl = travel > 0 ? clamp(1 - Math.min(d, 6 - d) * 1.6) : 0; }
+    const sc = 1 + hl * 0.15;
+    const inner = `<circle cx="${x}" cy="${y}" r="${nr}" fill="${hl > 0.3 ? (cols[i] === C.gray ? C.grayLight : cols[i] === C.teal ? C.tealLight : C.coralLight) : '#fff'}" stroke="${cols[i]}" stroke-width="7"/>` +
+      icon(ics[i], cols[i], x - 34 - (ics[i] === 'family' ? 6 : 0), y - 34, 68) +
+      `<circle cx="${x + 48}" cy="${y - 48}" r="24" fill="${cols[i]}"/>` + txt(x + 48, y - 38, i + 1, 28, '#fff', 800);
+    s += G(inner, 0, 0, sc * (0.6 + 0.4 * appear), appear * (1 - dim * 0.6), x, y);
+    // word label
+    const lx = cx + (R + 0) * Math.cos(angs[i]), ly = cy + R * Math.sin(angs[i]);
+    const off = i === 0 ? [0, -90] : i === 3 ? [0, 116] : [0, 108];
+    s += txt(lx + off[0], ly + off[1], words[i], 34, C.text, 700, 'middle', appear * (1 - dim * 0.7));
+  }
+  if (travel !== undefined && travel > 0 && travel < 1) {
+    const a = -Math.PI / 2 + travel * Math.PI * 2;
+    s += `<circle cx="${cx + R * Math.cos(a)}" cy="${cy + R * Math.sin(a)}" r="18" fill="${C.coral}"/>`;
+  }
+  return s;
+}
+
+const scenes = [
+  { d: 7, cap: 'Many benefits are based on two things: household size and income.', draw(lt) {
+      const a = P(lt, 0.3, 0.9), b = P(lt, 0.8, 1.4), pl = P(lt, 1.2, 1.7);
+      return G(icon('family', C.teal, 90, 220, 330) + txt(290, 640, 'Household size', 44, C.text), -60 * (1 - a), 0, 1, a) +
+        G(txt(540, 470, '+', 110, C.gray, 600), 0, 0, 1, pl) +
+        G(icon('paycheck', C.gray, 640, 230, 330) + txt(805, 640, 'Income', 44, C.text), 60 * (1 - b), 0, 1, b);
+  } },
+  { d: 6.5, cap: 'Some families believe a bigger household keeps them eligible.', draw(lt) {
+      const grow = P(lt, 1.2, 2.4), plus = P(lt, 1.0, 1.6);
+      const n = lt < 1.8 ? 3 : 4;
+      return G(icon('family', C.teal, 0, 0, 380, grow, C.teal), 540 - 236 * (1 + grow * 0.0) + (1 - grow) * 40, 180) +
+        G(`<circle cx="840" cy="190" r="56" fill="${C.teal}"/>` + txt(840, 210, '+1', 52, '#fff', 800), 0, 0, 0.6 + 0.4 * plus, plus, 840, 190) +
+        txt(540, 720, `Household: ${n} people`, 48, C.text);
+  } },
+  { d: 7.5, cap: 'Others lower their income or hide earnings to stay under the limit.', draw(lt) {
+      const shrink = P(lt, 1.0, 2.6), card = P(lt, 2.4, 3.0), stamp = P(lt, 3.6, 4.1);
+      const maxH = 600, base = 760, lim = 470;
+      const h = 560 - shrink * 160;
+      let s = `<rect x="150" y="${base - h}" width="200" height="${h}" rx="16" fill="${C.teal}"/>` +
+        icon('paycheck', '#ffffff', 190, base - h + 20, 120) +
+        `<line x1="100" y1="${base - lim}" x2="420" y2="${base - lim}" stroke="${C.coral}" stroke-width="7" stroke-dasharray="18 12"/>` +
+        txt(260, base - lim - 22, 'Income limit', 36, C.coral, 700) +
+        `<line x1="100" y1="${base}" x2="420" y2="${base}" stroke="${C.line}" stroke-width="4"/>` +
+        txt(250, base + 60, 'Income', 40, C.text);
+      let r = `<rect x="560" y="200" width="400" height="460" rx="24" fill="#fff" stroke="${C.line}" stroke-width="4"/>` +
+        txt(760, 280, 'A raise is offered', 38, C.text) +
+        `<path d="M760 320 L810 385 H780 V470 H740 V385 H710 Z" fill="${C.teal}" opacity="${1 - 0.6 * stamp}"/>`;
+      r += G(`<rect x="600" y="510" width="320" height="100" rx="14" fill="#fff" stroke="${C.coral}" stroke-width="7"/>` + txt(760, 578, 'Declined', 52, C.coral, 800),
+        0, 0, 1.3 - 0.3 * stamp, stamp, 760, 560);
+      r = `<g transform="rotate(${-8 * stamp} 760 420)">${''}</g>` + r;
+      s += G(r, 40 * (1 - card), 0, 1, card);
+      return s;
+  } },
+  { d: 9, cap: 'But a child costs far more than the benefit adds: about $860 a month vs about $200.', draw(lt) {
+      const g = P(lt, 0.8, 2.8), base = 760, maxH = 600;
+      const h1 = maxH * 200 / 860 * g, h2 = maxH * g;
+      const v1 = Math.round(200 * g / 10) * 10, v2 = Math.round(860 * g / 10) * 10;
+      return `<line x1="120" y1="${base}" x2="960" y2="${base}" stroke="${C.line}" stroke-width="4"/>` +
+        `<rect x="200" y="${base - h1}" width="240" height="${h1}" rx="14" fill="${C.teal}"/>` +
+        `<rect x="640" y="${base - h2}" width="240" height="${h2}" rx="14" fill="${C.coral}"/>` +
+        txt(320, base - h1 - 30, '$' + v1, 64, C.teal, 800) + txt(760, base - h2 - 30, '$' + v2, 64, C.coral, 800) +
+        txt(320, base + 56, 'Benefit added', 36, C.text) + txt(320, base + 100, 'per month', 32, C.sub, 500) +
+        txt(760, base + 56, 'Cost of a child', 36, C.text) + txt(760, base + 100, 'per month', 32, C.sub, 500) +
+        txt(540, base + 160, 'SNAP FY2026 maximum, at zero income. USDA cost estimate, 2015 dollars.', 24, C.sub, 500);
+  } },
+  { d: 6.5, cap: 'With the same income and higher costs, families fall further behind.', draw(lt) {
+      const empty = P(lt, 1.0, 4.0), c = P(lt, 0.8, 3.5);
+      return icon('wallet', C.gray, 360, 40, 360, 1 - empty) +
+        txt(170, 560, 'Income', 36, C.text, 700, 'start') +
+        `<rect x="420" y="526" width="300" height="44" rx="10" fill="${C.teal}"/>` + txt(740, 560, 'same', 34, C.sub, 600, 'start') +
+        txt(170, 680, 'Costs', 36, C.text, 700, 'start') +
+        `<rect x="420" y="646" width="${300 + 200 * c}" height="44" rx="10" fill="${C.coral}"/>` + txt(740 + 200 * c, 680, 'up', 34, C.coral, 700, 'start');
+  } },
+  { d: 7.5, cap: 'They depend more on government, and government gains more control.', draw(lt) {
+      const k = P(lt, 1.0, 4.0), ch = P(lt, 0.6, 1.4);
+      const fs = 1 - 0.45 * k, bs = 0.7 + 0.55 * k;
+      return G(icon('family', C.teal, 60, 330, 300), 0, 0, fs, 1, 230, 630) +
+        G(icon('chain', C.coral, 440, 380, 200), 0, 0, 1, ch) +
+        G(icon('building', C.gray, 640, 250, 380), 0, 0, bs, 1, 830, 630) +
+        txt(230, 720, 'Family', 40, C.teal) + txt(830, 720, 'Government', 40, C.text);
+  } },
+  { d: 7, cap: 'And the loop starts again.', draw(lt) {
+      return loopSVG(lt, { draw: P(lt, 0.2, 1.6), travel: clamp((lt - 1.8) / 4.0) });
+  } },
+  { d: 9, cap: 'Better design, like gradual benefit phase-outs, can help families move forward.', draw(lt) {
+      const out = P(lt, 1.0, 3.2), lab = P(lt, 2.8, 3.5);
+      const cx = 540, cy = 470;
+      let s = G(loopSVG(lt, { dim: 0.6 }), -150, 40, 0.74, 1, 540, 470);
+      // breakout arrow from the loop rim to upper right
+      const len = 640;
+      s += `<path id="brk" d="M560 280 C 680 250, 820 230, 920 140" fill="none" stroke="${C.teal}" stroke-width="16" stroke-linecap="round"
+             stroke-dasharray="${len} ${len}" stroke-dashoffset="${len * (1 - out)}"/>`;
+      if (out > 0.97) s += `<path d="M965 100 L948 188 L892 128 Z" fill="${C.teal}"/>`;
+      s += G(txt(850, 470, 'Gradual', 50, C.teal, 800) + txt(850, 532, 'phase-outs', 50, C.teal, 800), 0, 20 * (1 - lab), 1, lab);
+      s += G(icon('family', C.teal, 900, 0, 120), 0, 0, 1, lab);
+      return s;
+  } },
+];
+let acc = 0; scenes.forEach(s => { s.start = acc; acc += s.d; });
+window.TOTAL = acc;
+
+function honestyHTML(lt) {
+  const items = [
+    ['Supported', C.tealLight, '#16696A', 'Some people earn less to stay eligible.'],
+    ['Not supported nationally', C.coralLight, '#A9442F', 'Benefits causing more births.'],
+    ['Not yet tested', C.grayLight, C.text, 'Whether bigger families stay on benefits longer.'],
+    ['Interpretation', C.grayLight, C.text, "The power shift in step 6 is the author's interpretation, not a measured finding."],
+  ];
+  return `<div style="position:absolute; left:60px; top:380px; width:960px;">` + items.map((it, i) => {
+    const a = P(lt, 0.6 + i * 1.6, 1.1 + i * 1.6);
+    return `<div style="opacity:${a}; transform:translateY(${24 * (1 - a)}px); background:#fff; border:2px solid #E4E2DC; border-radius:22px; padding:26px 32px; margin-bottom:22px;">
+      <span style="display:inline-block; background:${it[1]}; color:${it[2]}; font-weight:800; font-size:30px; padding:6px 16px; border-radius:10px;">${it[0]}</span>
+      <div style="font-size:42px; line-height:1.3; font-weight:600; margin-top:12px;">${it[3]}</div></div>`;
+  }).join('') + `</div>`;
+}
+
+const dots = document.getElementById('dots');
+dots.innerHTML = scenes.map(() => '<span></span>').join('');
+const extra = document.createElement('div'); extra.id = 'extra'; document.body.appendChild(extra);
+
+window.render = function (t) {
+  let i = scenes.findIndex(s => t < s.start + s.d); if (i < 0) i = scenes.length - 1;
+  const sc = scenes[i], lt = t - sc.start;
+  const fadeIn = i === 0 ? P(lt, 0, 0.5) : P(lt, 0, 0.45);
+  const fadeOut = i === scenes.length - 1 ? 1 : 1 - P(lt, sc.d - 0.45, sc.d);
+  const op = Math.min(fadeIn, fadeOut);
+  const stage = document.getElementById('stage');
+  stage.innerHTML = sc.draw(lt); stage.style.opacity = op;
+  const cap = document.getElementById('cap');
+  cap.textContent = sc.cap;
+  const capBox = document.getElementById('caption');
+  capBox.style.opacity = op; capBox.style.transform = `translateY(${30 * (1 - fadeIn)}px)`;
+  if (false) {
+    capBox.style.top = '1360px'; capBox.style.height = '180px';
+    cap.style.fontSize = '54px'; cap.style.fontWeight = '800';
+    extra.innerHTML = honestyHTML(lt); extra.style.opacity = op;
+    const src = document.getElementById('sources');
+    src.textContent = 'Sources: USDA FNS SNAP FY2026 allotments; USDA Cost of Raising a Child; Roll, Miller and Despard, WashU CSD 2025.';
+    src.style.top = '1580px'; src.style.fontSize = '30px'; src.style.opacity = op * P(lt, 6.5, 7.2);
+  } else {
+    capBox.style.top = '1330px'; capBox.style.height = '440px'; cap.style.fontSize = ''; cap.style.fontWeight = '';
+    extra.innerHTML = ''; const src = document.getElementById('sources'); src.style.top='1800px'; src.style.fontSize='24px';
+    src.textContent = i === scenes.length - 1 ? 'Sources: USDA FNS SNAP FY2026 allotments; USDA Cost of Raising a Child; Roll, Miller and Despard, WashU CSD 2025.' : ''; src.style.opacity = op;
+  }
+  document.getElementById('header').style.opacity = i === 0 ? P(lt, 0, 0.5) : 1;
+  [...dots.children].forEach((d, k) => d.style.background = k < i ? C.gray : k === i ? C.teal : C.grayLight);
+  return i;
+};
+window.render(Number(new URLSearchParams(location.search).get('t') || 0));
+</script>
+</body>
+</html>
